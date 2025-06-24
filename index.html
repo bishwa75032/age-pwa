@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Name to Age</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="manifest" href="manifest.json">
+  <script>
+    function generateAge() {
+      const name = document.getElementById("name").value;
+      const age = Math.floor(Math.random() * 100) + 1;
+      document.getElementById("result").innerText = `${name} is ${age} years old.`;
+    }
+  </script>
+</head>
+<body>
+  <h2>Enter Your Name</h2>
+  <input type="text" id="name" placeholder="Your name" />
+  <button onclick="generateAge()">Get Age</button>
+  <p id="result"></p>
+</body>
+</html>
