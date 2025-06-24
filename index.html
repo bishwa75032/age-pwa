@@ -1,26 +1,339 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>AgeGuess</title>
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fun Age Guesser</title>
   <link rel="manifest" href="manifest.json">
-  <script>
-    function generateAge() {
-      const name = document.getElementById("name").value;
-      const age = Math.floor(Math.random() * 100) + 1;
-      document.getElementById("result").innerText = `${name} is ${age} years old.`;
+  <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@700&family=Fredoka+One&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #FF9E00;
+      --secondary: #FF6B6B;
+      --accent: #4ECDC4;
+      --dark: #556270;
+      --light: #F7FFF7;
     }
-
-    // Register Service Worker
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('service-worker.js');
+    
+    body {
+      font-family: 'Comic Neue', cursive;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      margin: 0;
+      padding: 20px;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
     }
-  </script>
+    
+    .container {
+      background: white;
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      max-width: 500px;
+      width: 90%;
+      transform-style: preserve-3d;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .container::before {
+      content: "";
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(
+        45deg,
+        transparent 0%,
+        rgba(255, 158, 0, 0.1) 30%,
+        rgba(255, 107, 107, 0.1) 50%,
+        rgba(78, 205, 196, 0.1) 70%,
+        transparent 100%
+      );
+      animation: shine 3s infinite linear;
+      z-index: 0;
+    }
+    
+    @keyframes shine {
+      0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+      100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+    }
+    
+    h1 {
+      color: var(--primary);
+      font-family: 'Fredoka One', cursive;
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 0 rgba(0,0,0,0.1);
+      position: relative;
+      z-index: 1;
+    }
+    
+    .subtitle {
+      color: var(--dark);
+      margin-bottom: 30px;
+      font-size: 1.1rem;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .input-group {
+      margin-bottom: 20px;
+      position: relative;
+      z-index: 1;
+    }
+    
+    #name {
+      width: 100%;
+      padding: 15px;
+      border: 3px solid var(--accent);
+      border-radius: 50px;
+      font-size: 1.2rem;
+      text-align: center;
+      outline: none;
+      transition: all 0.3s;
+      font-family: 'Comic Neue', cursive;
+    }
+    
+    #name:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 5px rgba(255, 158, 0, 0.2);
+    }
+    
+    #name::placeholder {
+      color: #aaa;
+      font-style: italic;
+    }
+    
+    button {
+      background: var(--secondary);
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      font-size: 1.2rem;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-family: 'Fredoka One', cursive;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+      position: relative;
+      overflow: hidden;
+      z-index: 1;
+    }
+    
+    button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(255, 107, 107, 0.6);
+    }
+    
+    button:active {
+      transform: translateY(0);
+    }
+    
+    button::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(
+        45deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.3) 50%,
+        transparent 100%
+      );
+      transform: translateX(-100%);
+      transition: transform 0.6s;
+      z-index: -1;
+    }
+    
+    button:hover::after {
+      transform: translateX(100%);
+    }
+    
+    #result {
+      margin-top: 30px;
+      font-size: 1.5rem;
+      min-height: 100px;
+      padding: 20px;
+      background: var(--light);
+      border-radius: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      z-index: 1;
+      border: 2px dashed var(--accent);
+    }
+    
+    .emoji {
+      font-size: 2rem;
+      margin-right: 10px;
+    }
+    
+    .confetti {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background-color: var(--primary);
+      opacity: 0;
+      z-index: 0;
+    }
+    
+    @keyframes float {
+      0% { transform: translateY(0) rotate(0deg); }
+      100% { transform: translateY(-100vh) rotate(360deg); }
+    }
+    
+    .age-meter {
+      width: 100%;
+      height: 20px;
+      background: #eee;
+      border-radius: 10px;
+      margin-top: 20px;
+      overflow: hidden;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .age-fill {
+      height: 100%;
+      width: 0;
+      background: linear-gradient(90deg, var(--accent), var(--primary));
+      border-radius: 10px;
+      transition: width 1s ease-out;
+    }
+    
+    @media (max-width: 500px) {
+      h1 {
+        font-size: 2rem;
+      }
+      
+      .subtitle {
+        font-size: 1rem;
+      }
+    }
+  </style>
 </head>
 <body>
-  <h2>Enter Your Name</h2>
-  <input type="text" id="name" placeholder="Your name" />
-  <button onclick="generateAge()">Get Age</button>
-  <p id="result"></p>
+  <div class="container">
+    <h1>🎉 Fun Age Guesser 🎉</h1>
+    <p class="subtitle">Enter your name and discover your randomly generated age!</p>
+    
+    <div class="input-group">
+      <input type="text" id="name" placeholder="Type your name here..." />
+    </div>
+    
+    <button onclick="generateAge()">Guess My Age!</button>
+    
+    <div class="age-meter">
+      <div class="age-fill" id="ageMeter"></div>
+    </div>
+    
+    <p id="result">
+      <span class="emoji">👆</span>
+      Your age will appear here!
+    </p>
+  </div>
+
+  <script>
+    function generateAge() {
+      const name = document.getElementById("name").value.trim();
+      
+      if (!name) {
+        alert("Please enter your name first! 😊");
+        return;
+      }
+      
+      // Show loading state
+      document.getElementById("result").innerHTML = `<span class="emoji">🔮</span> Calculating...`;
+      document.getElementById("ageMeter").style.width = '0%';
+      
+      // Simulate calculation delay
+      setTimeout(() => {
+        const age = Math.floor(Math.random() * 100) + 1;
+        const emoji = getAgeEmoji(age);
+        const comment = getAgeComment(age, name);
+        
+        // Animate the meter
+        document.getElementById("ageMeter").style.width = `${age}%`;
+        
+        // Display result with animation
+        document.getElementById("result").innerHTML = `
+          <span class="emoji">${emoji}</span>
+          <strong>${name}</strong>, you're <strong>${age}</strong> years old!<br>
+          <small>${comment}</small>
+        `;
+        
+        // Create confetti effect
+        createConfetti();
+      }, 800);
+    }
+    
+    function getAgeEmoji(age) {
+      if (age < 13) return '👶';
+      if (age < 20) return '🧒';
+      if (age < 30) return '👩';
+      if (age < 50) return '🧑';
+      if (age < 70) return '👴';
+      return '🧓';
+    }
+    
+    function getAgeComment(age, name) {
+      const comments = [
+        `Wow ${name}, you're ${age}? That's ancient! Just kidding! 😜`,
+        `${age} looks good on you! 😎`,
+        `At ${age}, you're like a fine wine - getting better with age! 🍷`,
+        `${age}? That's prime time for ${name}! 🎉`,
+        `You don't look a day over ${Math.floor(age * 0.8)}! 😉`,
+        `${name}, ${age} is just a number... a big number! 🤣`,
+        `At ${age}, you've seen it all! Well, almost... 👀`
+      ];
+      
+      return comments[Math.floor(Math.random() * comments.length)];
+    }
+    
+    function createConfetti() {
+      const colors = ['#FF9E00', '#FF6B6B', '#4ECDC4', '#556270'];
+      
+      for (let i = 0; i < 50; i++) {
+        const confetti = document.createElement('div');
+        confetti.className = 'confetti';
+        confetti.style.left = `${Math.random() * 100}%`;
+        confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        confetti.style.width = `${Math.random() * 10 + 5}px`;
+        confetti.style.height = `${Math.random() * 10 + 5}px`;
+        confetti.style.animation = `float ${Math.random() * 3 + 2}s linear forwards`;
+        confetti.style.opacity = '1';
+        
+        document.querySelector('.container').appendChild(confetti);
+        
+        // Remove confetti after animation
+        setTimeout(() => {
+          confetti.remove();
+        }, 5000);
+      }
+    }
+    
+    // Register Service Worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('service-worker.js')
+          .then(registration => {
+            console.log('ServiceWorker registration successful');
+          })
+          .catch(err => {
+            console.log('ServiceWorker registration failed: ', err);
+          });
+      });
+    }
+  </script>
 </body>
 </html>
